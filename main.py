@@ -292,9 +292,105 @@ def research():
 # }
 
 
-# int main()
-# {
-g = 9.80665
-research()
-# return 0
-# }
+if __name__ == "__main__":
+    # int main()
+    # {
+    g = 9.80665
+    research()
+    # return 0
+    # }
+
+def air_K(mass, S, startX, startY, speed, teta, l, butcher, F_para):
+    Xspeed = speed * np.cos(teta)           # u0
+    adge = np.tan(teta)
+    y = startY                              # y0
+    t = 0                                   # t0
+    speed = speed                           # v0
+    g = 9.80665
+
+    h = 0.002
+    # h = 1
+    bounds = 100
+    # Arrays
+    ys = np.zeros(int(l / h))
+    ys[0] = y
+    ts = np.arange(0, l, h)
+    ks = np.zeros((5,butcher.shape[1]))
+
+    itter = 0
+    while y > 0 and ts[itter] < l:          # (y > 0 && x < l)
+        if ts[itter] + h > l:
+            h = l-ts[itter]
+        for i in range(15):
+            #                    i-1
+            # k[i] = f(x(t) + h * ОЈ a[i][j] * k[j])
+            #                    j=0
+            sp = speed + h * np.dot(ks[4, :i + 1], butcher[i, :i + 1])
+            spx = Xspeed + h * np.dot(ks[0, :i + 1], butcher[i, :i + 1])
+            ks[0, i] = (-Force(F_para,S, sp) / (mass * sp))                     # dx_speed  # u
+            ks[1, i] = (-g / ((spx) ** 2))                                      # adge 
+            ks[2, i] = (adge + h * np.dot(ks[1, :i + 1], butcher[i, :i + 1]))   # y         # y
+            ks[3, i] = 1 / (spx)                                                # t         # t
+            ks[4, i] = (ks[0, i]) * np.sqrt(1 + (ks[1, i]) ** 2)                # speed     # v
+
+        Xspeed += h * np.dot(ks[0],butcher[-1]) # u
+        adge += h * np.dot(ks[1],butcher[-1])  
+        y += h * np.dot(ks[2],butcher[-1])      # y
+        t += h * np.dot(ks[3],butcher[-1])      # t
+        speed += h * np.dot(ks[4],butcher[-1])  # v
+
+        itter += 1
+        if y >= 0 and itter < int(l / h):
+            ys[itter] = y
+        else:
+            break
+    return np.arctan(adge),speed,y
+
+def block_K(mass, S, startX, startY, speed, teta, ПЃ, Пѓ, butcher):
+    x = startX
+    y = startY
+    adge = np.tan(teta)
+    teta = np.rad2deg(teta)
+    t = 0
+    Xspeed = speed * np.cos(teta)
+
+    h = 0.0002
+    # h = 1
+    bounds = 10000
+    # Arrays
+    ys = np.zeros(int(bounds / h))
+    ys[0] = startY
+    ts = np.arange(startX, bounds, h)
+    ks = np.zeros((7,butcher.shape[1]))
+
+    Ex = (mass * Xspeed ** 2) / 2
+    ks[1, 0] = Ex
+
+    itter = 0
+    while speed >= 0:  # y
+        # k
+        for i in range(15):
+            sp = speed + h*np.dot(ks[1,:i+1], butcher[i,:i+1])
+            spx = Xspeed + h*np.dot(ks[2,:i+1], butcher[i,:i+1])
+            E_med_v = S * (Пѓ / 2 + ПЃ * sp) * 2000                       # E_med_v
+            ks[0, i] = S * (Пѓ/2 + ПЃ * spx) * 2000                       # E_med_u
+            ks[1, i] = -np.sqrt(2*E_med_v/mass)                         # speed     # v
+            ks[2, i] = -np.sqrt(2*ks[0,i]/mass)                         # dx_speed  # u
+            ks[3, i] = teta ** 2                                        # adge      # Оі
+            ks[4, i] = (adge + h*np.dot(ks[3,:i+1], butcher[i,:i+1]))   # y         # y
+            ks[5, i] = 1 / (spx)                                        # t         # t
+
+        Xspeed += h*np.dot(ks[2],butcher[-1])
+        adge += h*np.dot(ks[3],butcher[-1]) 
+        teta += h*np.dot(ks[3],butcher[-1]) 
+        y += h*np.dot(ks[4],butcher[-1])
+        t += h*np.dot(ks[5],butcher[-1])
+        speed += h*np.dot(ks[1],butcher[-1])
+
+        itter += 1
+        if y >= 0 and itter < int(bounds / h):
+            ys[itter] = y
+        else:
+            break
+    num = min(len(ts), itter)
+    return np.arctan(adge),speed,ts[num-1],y
