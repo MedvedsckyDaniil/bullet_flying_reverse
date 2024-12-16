@@ -1,7 +1,7 @@
 # Обратная задача внешней баллистики
 # Полёт пули
 
-<div style="text-align: justify">
+<p align="justify">
 
 ## Цели работы
 
@@ -149,4 +149,4 @@ https://cyberleninka.ru/article/n/approksimatsiya-zakona-soprotivleniya-vozduha-
 3) Кривченко А.Л. – Ударно-волновые процессы взаимодействия Высокоскоростных элементов с конденсированными средами. URL: <br/>
 http://d21221701.samgtu.ru/sites/d21221701.samgtu.ru/files/aleksenceva_dis.pdf
 
-</div>
+</p>
