@@ -22,6 +22,8 @@
 
 ![butcher_tables.jpg](/butcher/butcher_tables.jpg)
 
+`/images` – папка с изображениями, используемыми в README.md.
+
 #### Файлы
 
 `/main.py` – файл с кодом программы прямой задачи внешней баллистики.
