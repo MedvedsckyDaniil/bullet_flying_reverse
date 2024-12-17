@@ -20,6 +20,11 @@ def mul_const(a, b):
     c[:,:]=np.dot(a[:,:],b)
     return c
 
+def add_mat(a, b):
+    c=np.zeros(a.shape)
+    c[:, :] = a[:, :]+ b[:,:]
+    return c
+
 def kholetsky(matrix,y):
     tp=np.zeros((matrix.shape[0],matrix.shape[1]+y.shape[1]))
     for i in range(matrix.shape[0]):
@@ -42,6 +47,7 @@ def kholetsky(matrix,y):
     t_arr = t_arr[:, :n]
     x_arr = np.zeros((n, 1))
     for i in range(1, n + 1):
+
         x_arr[-i, 0] = (b[-i] - (t_arr[-i, -i:] * x_arr[-i:, 0]).sum())[0] / t_arr[-i, -i]
     return x_arr
 
@@ -78,6 +84,23 @@ def cheb_norm(arr):
 
 def func_norm_raspr_obr(r,mu,sigma):
     return mu-np.sqrt(-2*sigma**2*np.log(sigma*np.sqrt(2*np.pi)*r))
+
+
+def inverse_matrix(matrix_origin):
+    n = matrix_origin.shape[0]
+    m = np.hstack((matrix_origin, np.eye(n)))
+
+    for nrow, row in enumerate(m):
+        divider = row[nrow]
+        row /= divider
+        for lower_row in m[nrow + 1:]:
+            factor = lower_row[nrow]
+            lower_row -= factor * row
+    for k in range(n - 1, 0, -1):
+        for row_ in range(k - 1, -1, -1):
+            if m[row_, k]:
+                m[row_, :] -= m[k, :] * m[row_, k]
+    return m[:, n:].copy()
 
 adge= -0.01339246052355161
 y= 1.5976693190983655
@@ -119,7 +142,13 @@ gk = np.zeros((1, num_of_exp_N))
 gk[:] = g_funk_k(cords)
 a = g_funk([cords[0, 0], q_aprior[0, 0], q_aprior[1, 0]])
 cheb=float('inf')
+print("промежуточные результаты")
 while(check1>=check2 and itter<5):
+    for i in range(num_of_exp_N):
+        print(i,end=" ")
+        for j in range(param_q):
+            print(q_aprior[j,i],end=" ")
+        print("")
     ch=cheb_norm(a-gk)
     if (cheb>=ch):
         cheb= cheb_norm(a-gk)
@@ -177,6 +206,7 @@ while(check1>=check2 and itter<5):
         q_aprior=q_aprior_buff
         break
 
+print("конечный результат")
 for i in range(num_of_exp_N):
     print(i,end=" ")
     for j in range(param_q):
